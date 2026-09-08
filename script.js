@@ -22,21 +22,40 @@ document.addEventListener('keydown', event => {
 });
 window.matchMedia('(min-width: 961px)').addEventListener('change', closeMenu);
 
-// Explicit Korean time prevents a visitor's timezone from changing the cutoff.
+// End timestamps are exclusive; all event boundaries use Korean time.
+function periodState(now, start, end) {
+  if (now < new Date(start)) return 'upcoming';
+  if (now < new Date(end)) return 'active';
+  return 'ended';
+}
 function contestStatus(now) {
-  const start = new Date('2026-11-02T00:00:00+09:00');
-  const end = new Date('2026-11-24T00:00:00+09:00');
-  if (now < start) return '접수 예정';
-  if (now < end) return '접수 중';
-  return '접수 마감';
+  return { upcoming: '접수 예정', active: '접수 중', ended: '접수 마감' }[
+    periodState(now, '2026-11-02T00:00:00+09:00', '2026-11-24T00:00:00+09:00')
+  ];
 }
 function updateStatus() {
+  const now = new Date();
   document.querySelectorAll('[data-contest-status]').forEach(element => {
-    element.textContent = contestStatus(new Date());
+    element.textContent = contestStatus(now);
+    element.dataset.state = periodState(now, '2026-11-02T00:00:00+09:00', '2026-11-24T00:00:00+09:00');
+  });
+  document.querySelectorAll('.timeline li[data-start]').forEach(element => {
+    const state = periodState(now, element.dataset.start, element.dataset.end);
+    const badge = element.querySelector('.schedule-status');
+    const labels = element.dataset.announcement
+      ? { upcoming: '발표 예정', active: '발표 예정일', ended: '예정일 경과' }
+      : { upcoming: '예정', active: '진행 중', ended: '기간 종료' };
+    element.dataset.state = state;
+    badge.textContent = labels[state];
+    badge.hidden = false;
   });
 }
 updateStatus();
-window.setInterval(updateStatus, 60000);
+window.setInterval(updateStatus, 1000);
+window.addEventListener('pageshow', updateStatus);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) updateStatus();
+});
 
 const copyButton = document.querySelector('#copy-email');
 const copyStatus = document.querySelector('#copy-status');

@@ -14,3 +14,8 @@
 @media(prefers-reduced-motion:reduce){.award:hover{transform:none}}
 
 a.download-card{transition:border-color .2s ease,background .2s ease}a.download-card:hover{border-color:var(--blue);background:#f7fbff}.download-label{font-size:.8rem;color:var(--blue);font-weight:700;white-space:nowrap}
+
+.schedule-status{display:inline-block;margin-top:13px;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:600;line-height:1.6;background:#edf1f5;color:#59677b}
+.timeline li[data-state="active"] .schedule-status{background:#e0f0ff;color:#064ba3}
+.timeline li[data-state="ended"] .schedule-status{background:#edf1f5;color:#59677b}
+.status[data-state="ended"]{background:#e0e6ee;color:#37475c}
