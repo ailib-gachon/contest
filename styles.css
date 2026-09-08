@@ -12,3 +12,5 @@
 .award{transition:transform .22s ease,background .22s ease,border-color .22s ease,box-shadow .22s ease}
 @media(hover:hover){.award:hover{transform:translateY(-6px);background:#ffffff12;border-color:#a2eaf0;box-shadow:0 14px 30px #00000026}}
 @media(prefers-reduced-motion:reduce){.award:hover{transform:none}}
+
+a.download-card{transition:border-color .2s ease,background .2s ease}a.download-card:hover{border-color:var(--blue);background:#f7fbff}.download-label{font-size:.8rem;color:var(--blue);font-weight:700;white-space:nowrap}
