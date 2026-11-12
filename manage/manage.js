@@ -1,16 +1,16 @@
 'use strict';
 
-const { configured, request, revokeSession, loginError, driveVideoLinks } = window.contestApi;
+const { configured, request, revokeSession, loginError, driveVideoLinks, entryVideoUrls } = window.contestApi;
 const get = (id) => document.getElementById(id);
 const loginFields = get('login-fields');
 const entryFields = get('entry-fields');
 const entrySelect = get('entry-select');
 const entryForm = get('entry-form');
 const fieldIds = {
-  team_name: 'team-name', title: 'entry-title', drive_url: 'drive-url', report_url: 'report-url',
-  video_url: 'video-url'
+  team_name: 'team-name', title: 'entry-title', drive_url: 'drive-url', report_url: 'report-url'
 };
-const entryFieldsQuery = 'id,team_name,title,drive_url,report_url,video_url,revision';
+const videoInput = get('video-urls');
+const entryFieldsQuery = 'id,team_name,title,drive_url,report_url,video_url,extra_video_urls,revision';
 const scoreKeys = ['creativity', 'appropriateness', 'effectiveness', 'reproducibility'];
 const collator = new Intl.Collator('ko');
 
@@ -167,6 +167,7 @@ function renderSelect(id = '') {
 function showEntry(entry) {
   selected = entry;
   for (const [key, id] of Object.entries(fieldIds)) get(id).value = entry?.[key] ?? '';
+  videoInput.value = entryVideoUrls(entry).join('\n');
   get('entry-legend').textContent = entry ? '작품 수정' : '새 작품 등록';
   get('save-entry').textContent = entry ? '변경사항 저장' : '작품 등록';
   status('save-status');
@@ -187,7 +188,8 @@ function readForm() {
 }
 
 function hasChanges() {
-  return Object.entries(readForm()).some(([key, value]) => value !== (selected?.[key] ?? ''));
+  return videoInput.value.trim() !== entryVideoUrls(selected).join('\n') ||
+    Object.entries(readForm()).some(([key, value]) => value !== (selected?.[key] ?? ''));
 }
 
 function allowDiscard() {
@@ -248,11 +250,18 @@ entryForm.addEventListener('submit', async (event) => {
     status('save-status', 'https://drive.google.com 또는 https://docs.google.com 공유 링크를 입력해 주세요.', true);
     return;
   }
-  const video = driveVideoLinks(data.video_url);
-  if (data.video_url && !video) {
-    status('save-status', '시연 영상은 Google Drive의 개별 파일 공유 링크를 입력해 주세요.', true);
+  const videoUrls = videoInput.value.split('\n').map((line) => line.trim()).filter(Boolean);
+  if (videoUrls.length > 10) {
+    status('save-status', '시연 영상은 작품당 최대 10개까지 등록할 수 있습니다.', true);
     return;
   }
+  const videos = videoUrls.map(driveVideoLinks);
+  const invalidVideo = videos.findIndex((video) => !video);
+  if (invalidVideo !== -1) {
+    status('save-status', `영상 ${invalidVideo + 1}번에 Google Drive 개별 파일 공유 링크를 입력해 주세요.`, true);
+    return;
+  }
+  const [firstVideo, ...extraVideos] = videos.map(({ view }) => view);
   const activeSession = session;
   const updating = selected;
   const query = new URLSearchParams({ select: entryFieldsQuery });
@@ -266,7 +275,10 @@ entryForm.addEventListener('submit', async (event) => {
     const response = await request(`/rest/v1/contest_entries?${query}`, {
       ...credentials(activeSession), method: updating ? 'PATCH' : 'POST',
       prefer: 'return=representation',
-      body: { ...data, report_url: data.report_url || null, video_url: video?.view ?? null }
+      body: {
+        ...data, report_url: data.report_url || null,
+        video_url: firstVideo ?? null, extra_video_urls: extraVideos
+      }
     });
     const [entry] = await response.json();
     if (activeSession !== session) return;

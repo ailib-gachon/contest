@@ -46,7 +46,7 @@
   font-size: .9rem;
 }
 
-.manage-layout input, .manage-layout select {
+.manage-layout input, .manage-layout select, .manage-layout textarea {
   display: block;
   width: 100%;
   min-height: 44px;

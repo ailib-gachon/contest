@@ -62,5 +62,9 @@ window.contestApi = (() => {
     }
   }
 
-  return Object.freeze({ configured, request, revokeSession, loginError, driveVideoLinks });
+  function entryVideoUrls(entry) {
+    return [entry?.video_url, ...(entry?.extra_video_urls ?? [])].filter(Boolean);
+  }
+
+  return Object.freeze({ configured, request, revokeSession, loginError, driveVideoLinks, entryVideoUrls });
 })();

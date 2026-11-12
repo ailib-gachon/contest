@@ -58,7 +58,7 @@ const filesStatus = byId('files-status');
 const reload = byId('reload');
 const signOut = byId('sign-out');
 const saveButton = byId('save-score');
-const { configured, request, revokeSession, loginError, driveVideoLinks } = window.contestApi;
+const { configured, request, revokeSession, loginError, driveVideoLinks, entryVideoUrls } = window.contestApi;
 const videoDialog = byId('video-dialog');
 const videoSlot = byId('video-frame-slot');
 const setupMessage = '심사위원 로그인이 아직 설정되지 않았습니다. 공모전 담당자에게 문의해 주세요.';
@@ -230,7 +230,18 @@ function showEntry(entry) {
   byId('entry-team').textContent = entry?.team_name ?? '';
   setDriveLink(byId('drive-link'), entry?.drive_url);
   setDriveLink(byId('report-link'), entry?.report_url);
-  byId('play-video').hidden = !driveVideoLinks(entry?.video_url);
+  const videos = entryVideoUrls(entry).map(driveVideoLinks).filter(Boolean);
+  const buttons = byId('video-buttons');
+  buttons.hidden = videos.length === 0;
+  buttons.replaceChildren(...videos.map((video, index) => {
+    const button = document.createElement('button');
+    const title = videos.length === 1 ? '시연 영상' : `시연 영상 ${index + 1}`;
+    button.type = 'button';
+    button.className = 'button review-secondary compact';
+    button.textContent = `${title} 재생`;
+    button.addEventListener('click', () => playVideo(video, title));
+    return button;
+  }));
   for (const { key } of rubrics) byId(key).value = entry?.score?.[key] ?? '';
   updateTotal();
   status(scoreStatus, entry?.score ? '저장한 점수를 불러왔습니다.' : '');
@@ -242,17 +253,17 @@ function closeVideo() {
   byId('open-video-drive').removeAttribute('href');
 }
 
-byId('play-video').addEventListener('click', () => {
-  const video = driveVideoLinks(currentEntry?.video_url);
-  if (!session || !video || videoDialog.open) return;
+function playVideo(video, title) {
+  if (!session || videoDialog.open) return;
   const frame = document.createElement('iframe');
-  frame.title = 'Google Drive 시연 영상 재생';
+  byId('video-title').textContent = title;
+  frame.title = `Google Drive ${title} 재생`;
   frame.src = video.preview;
   frame.allowFullscreen = true;
   byId('open-video-drive').href = video.view;
   videoSlot.replaceChildren(frame);
   videoDialog.showModal();
-});
+}
 byId('close-video').addEventListener('click', closeVideo);
 videoDialog.addEventListener('close', () => {
   if (!videoDialog.open) closeVideo();
@@ -322,7 +333,7 @@ async function loadEntries() {
     }
     let page;
     do {
-      const fields = 'id,team_name,title,drive_url,report_url,video_url,contest_scores(creativity,appropriateness,effectiveness,reproducibility,total)';
+      const fields = 'id,team_name,title,drive_url,report_url,video_url,extra_video_urls,contest_scores(creativity,appropriateness,effectiveness,reproducibility,total)';
       const params = new URLSearchParams({
         select: fields, order: 'team_name.asc,title.asc,id.asc', limit, offset: results.length
       });
