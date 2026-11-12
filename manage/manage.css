@@ -1,0 +1,114 @@
+.manage-toolbar, .manage-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#dashboard > .manage-toolbar {
+  margin-bottom: 16px;
+}
+
+.manage-toolbar nav {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manage-toolbar [aria-pressed="true"] {
+  background: var(--blue);
+  color: white;
+}
+
+.manage-account {
+  color: var(--muted);
+  font-size: .85rem;
+  overflow-wrap: anywhere;
+}
+
+.manage-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.manage-layout fieldset {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  min-inline-size: 0;
+}
+
+.manage-layout label, .manage-layout legend {
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+.manage-layout input, .manage-layout select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 5px 0 12px;
+  padding: 7px 10px;
+  background: white;
+  border: 1px solid #9caec2;
+  border-radius: 7px;
+  font: inherit;
+  color: var(--ink);
+}
+
+.scores-panel {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.manage-table {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.manage-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+
+.manage-table th, .manage-table td {
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.manage-table th {
+  background: var(--tint);
+}
+
+.manage-table td:not(:nth-child(2)) {
+  white-space: nowrap;
+}
+
+#rankings-table td:last-child {
+  white-space: normal;
+  min-width: 130px;
+}
+
+.manage-table details summary {
+  display: list-item;
+  padding: 0;
+  font-size: .85rem;
+}
+
+.manage-table details summary::after {
+  content: none;
+}
+
+@media (max-width: 640px) {
+  .manage-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

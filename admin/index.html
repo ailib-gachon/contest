@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://*.supabase.co; base-uri 'none'; form-action 'none'">
+  <title>심사위원 페이지 | 가천대학교 생성형 AI 활용 사례 공모전</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="./admin.css">
+  <script src="./config.js" defer></script>
+  <script src="./api.js" defer></script>
+  <script src="./admin.js" defer></script>
+</head>
+<body class="review">
+  <a class="skip-link" href="#main">본문 바로가기</a>
+  <header class="review-header">
+    <div class="review-shell review-header-inner">
+      <a class="brand" href="../">
+        <img src="../assets/library-logo.png" alt="가천대학교 중앙도서관" width="255" height="57">
+      </a>
+      <a class="review-home" href="../">공모전 안내 <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <div class="review-hero">
+      <div class="review-shell">
+        <p>2026 가천대학교 생성형 AI 활용 사례 공모전</p>
+        <h1>심사위원 페이지</h1>
+      </div>
+    </div>
+    <div class="review-shell review-content">
+      <section id="login-panel" class="review-card login-card" aria-labelledby="login-title">
+        <h2 id="login-title">심사위원 로그인</h2>
+        <p>등록된 이메일과 비밀번호를 입력해 주세요.</p>
+        <form id="login-form" method="post" aria-describedby="login-status">
+          <fieldset id="login-fields" disabled>
+            <label for="email">이메일 아이디</label>
+            <input id="email" type="email" autocomplete="username" required>
+            <label for="password">비밀번호</label>
+            <input id="password" type="password" autocomplete="current-password" required>
+            <button id="sign-in" class="button blue-button" type="submit">로그인</button>
+          </fieldset>
+        </form>
+        <p id="login-status" class="review-status" role="status"></p>
+        <noscript><p>로그인하려면 브라우저에서 JavaScript를 사용하도록 설정해 주세요.</p></noscript>
+      </section>
+
+      <section id="submissions" class="review-card" aria-labelledby="submissions-title" hidden>
+        <div class="files-heading">
+          <div>
+            <h2 id="submissions-title" tabindex="-1">제출작 심사</h2>
+            <p id="signed-in-as"></p>
+          </div>
+          <button id="sign-out" class="button review-secondary" type="button">로그아웃</button>
+        </div>
+        <div class="files-toolbar">
+          <div class="entry-picker">
+            <label for="entry-picker">심사할 팀</label>
+            <select id="entry-picker" disabled></select>
+          </div>
+          <button id="reload" class="button review-secondary compact" type="button">새로고침</button>
+        </div>
+        <p id="files-status" class="review-status" role="status"></p>
+        <section id="entry-panel" class="entry-panel" aria-labelledby="entry-title" hidden>
+          <div class="entry-heading">
+            <div>
+              <h3 id="entry-title"></h3>
+              <p id="entry-team"></p>
+            </div>
+            <div class="file-actions">
+              <a id="drive-link" class="button review-secondary compact" target="_blank" rel="noopener noreferrer">제출 파일 열기 ↗</a>
+              <a id="report-link" class="button review-secondary compact" target="_blank" rel="noopener noreferrer" hidden>보고서 PDF ↗</a>
+            </div>
+          </div>
+          <form id="score-form" method="post">
+            <fieldset id="score-fields">
+              <legend>항목별 점수</legend>
+              <p class="score-note">사용한 AI 도구의 성능이나 제출물의 디자인 완성도 자체는 평가하지 않습니다.</p>
+              <div id="rubrics"></div>
+              <div class="score-footer">
+                <div class="score-total">
+                  <label for="score-total">총점</label>
+                  <output id="score-total">—</output><span> / 100점</span>
+                </div>
+                <button id="save-score" class="button blue-button" type="submit">점수 저장</button>
+              </div>
+            </fieldset>
+            <p id="score-status" class="review-status" role="status"></p>
+          </form>
+        </section>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

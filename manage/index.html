@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://*.supabase.co; base-uri 'none'; form-action 'none'">
+  <title>공모전 관리자 | 가천대학교</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../admin/admin.css">
+  <link rel="stylesheet" href="./manage.css">
+  <script src="../admin/config.js" defer></script>
+  <script src="../admin/api.js" defer></script>
+  <script src="./manage.js" defer></script>
+</head>
+<body class="review">
+  <a class="skip-link" href="#main">본문 바로가기</a>
+  <header class="review-header">
+    <div class="review-shell review-header-inner">
+      <a class="brand" href="../index.html">
+        <img src="../assets/library-logo.png" alt="가천대학교 중앙도서관" width="255" height="57">
+      </a>
+      <a class="review-home" href="../index.html">공모전 안내 ↗</a>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <div class="review-hero">
+      <div class="review-shell">
+        <p>2026 가천대학교 생성형 AI 활용 사례 공모전</p>
+        <h1>공모전 관리자</h1>
+      </div>
+    </div>
+    <div class="review-shell review-content">
+      <section id="login-panel" class="review-card login-card" aria-labelledby="login-title">
+        <h2 id="login-title">관리자 로그인</h2>
+        <p>관리자로 등록된 이메일과 비밀번호를 입력해 주세요.</p>
+        <form id="login-form" method="post">
+          <fieldset id="login-fields" disabled>
+            <label for="email">이메일</label>
+            <input id="email" type="email" autocomplete="username" required>
+            <label for="password">비밀번호</label>
+            <input id="password" type="password" autocomplete="current-password" required>
+            <button id="sign-in" class="button blue-button" type="submit">로그인</button>
+          </fieldset>
+        </form>
+        <p id="login-status" class="review-status" role="status"></p>
+      </section>
+
+      <div id="dashboard" hidden>
+        <div class="manage-toolbar">
+          <nav aria-label="관리 메뉴">
+            <button id="entries-tab" class="button review-secondary compact" type="button" aria-controls="entries-panel" aria-pressed="true">작품 관리</button>
+            <button id="rankings-tab" class="button review-secondary compact" type="button" aria-controls="rankings-panel" aria-pressed="false">최종 순위</button>
+          </nav>
+          <div class="manage-account">
+            <span id="signed-in-as"></span>
+            <button id="sign-out" class="button review-secondary compact" type="button">로그아웃</button>
+          </div>
+        </div>
+        <section id="entries-panel" class="review-card" aria-labelledby="entries-title">
+          <div class="manage-toolbar">
+            <h2 id="entries-title" tabindex="-1">작품 관리</h2>
+            <button id="reload-entries" class="button review-secondary compact" type="button">목록 새로고침</button>
+          </div>
+          <div class="manage-layout">
+            <div>
+              <label for="entry-select">등록 작품</label>
+              <select id="entry-select"><option value="">새 작품 등록</option></select>
+              <p id="entries-status" class="review-status" role="status"></p>
+            </div>
+            <form id="entry-form" method="post">
+              <fieldset id="entry-fields">
+                <legend id="entry-legend">새 작품 등록</legend>
+                <label for="team-name">팀명</label>
+                <input id="team-name" type="text" maxlength="150" required>
+                <label for="entry-title">작품명</label>
+                <input id="entry-title" type="text" maxlength="300" required>
+                <label for="drive-url">제출 파일 또는 폴더 Drive 링크</label>
+                <input id="drive-url" type="url" required>
+                <label for="report-url">보고서 PDF Drive 링크 (선택)</label>
+                <input id="report-url" type="url">
+                <button id="save-entry" class="button blue-button" type="submit">작품 등록</button>
+              </fieldset>
+              <p id="save-status" class="review-status" role="status"></p>
+            </form>
+          </div>
+          <section id="scores-panel" class="scores-panel" aria-labelledby="scores-title" hidden>
+            <div class="manage-toolbar">
+              <h3 id="scores-title">심사위원별 점수</h3>
+              <button id="reload-scores" class="button review-secondary compact" type="button">점수 새로고침</button>
+            </div>
+            <p id="scores-status" class="review-status" role="status"></p>
+            <div class="manage-table">
+              <table id="scores-table" hidden>
+                <thead><tr><th scope="col">심사위원</th><th scope="col">창의성·독창성</th><th scope="col">AI 활용의 적절성</th><th scope="col">문제해결 효과성</th><th scope="col">재현성·확산성</th><th scope="col">총점 / 100</th></tr></thead>
+                <tbody id="scores-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+        <section id="rankings-panel" class="review-card" aria-labelledby="rankings-title" hidden>
+          <div class="manage-toolbar">
+            <h2 id="rankings-title" tabindex="-1">최종 순위</h2>
+            <button id="reload-rankings" class="button review-secondary compact" type="button">순위 새로고침</button>
+          </div>
+          <p>등록된 심사위원 전원이 모든 작품을 채점하면 순위가 표시됩니다.</p>
+          <p id="rankings-status" class="review-status" role="status"></p>
+          <div class="manage-table">
+            <table id="rankings-table" hidden>
+              <thead><tr><th scope="col">순위</th><th scope="col">팀·작품</th><th scope="col">채점 완료</th><th scope="col">평균 / 100</th><th scope="col">총점 합계</th><th scope="col">동점 처리</th></tr></thead>
+              <tbody id="rankings-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
