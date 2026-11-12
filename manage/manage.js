@@ -17,6 +17,8 @@ let loginAttempt;
 let session;
 let entries = [];
 let selected;
+let scoreEntry;
+let rankingEntry;
 let busy = false;
 let scoreRequest = 0;
 let rankRequest = 0;
@@ -35,6 +37,7 @@ function clearSession(message = '', focus = false) {
   }
   session = undefined;
   entries = [];
+  rankingEntry = undefined;
   get('dashboard').hidden = true;
   get('login-panel').hidden = false;
   get('signed-in-as').textContent = '';
@@ -44,6 +47,7 @@ function clearSession(message = '', focus = false) {
   renderSelect();
   showEntry(undefined);
   clearTable('rankings');
+  get('ranking-weight-note').hidden = true;
   status('entries-status');
   status('rankings-status');
   setBusy(false);
@@ -148,6 +152,8 @@ function showPanel(name) {
     get(`${panel}-panel`).hidden = panel !== name;
     get(`${panel}-tab`).setAttribute('aria-pressed', String(panel === name));
   }
+  get(`${name}-score-slot`).append(get('scores-panel'));
+  showScores(name === 'entries' ? selected : undefined);
 }
 
 function renderSelect(id = '') {
@@ -162,8 +168,14 @@ function showEntry(entry) {
   for (const [key, id] of Object.entries(fieldIds)) get(id).value = entry?.[key] ?? '';
   get('entry-legend').textContent = entry ? '작품 수정' : '새 작품 등록';
   get('save-entry').textContent = entry ? '변경사항 저장' : '작품 등록';
-  get('scores-panel').hidden = !entry;
   status('save-status');
+  showScores(entry);
+}
+
+function showScores(entry) {
+  scoreEntry = entry;
+  get('scores-panel').hidden = !entry;
+  get('scores-title').textContent = entry ? `심사위원별 점수 · ${entry.title}` : '심사위원별 점수';
   status('scores-status');
   clearTable('scores');
   if (entry) loadScores();
@@ -291,9 +303,9 @@ function renderTable(name, rows) {
 }
 
 async function loadScores() {
-  if (!session || !selected) return;
+  if (!session || !scoreEntry) return;
   const activeSession = session;
-  const entry = selected;
+  const entry = scoreEntry;
   const sequence = ++scoreRequest;
   clearTable('scores');
   status('scores-status', '점수를 불러오는 중입니다…');
@@ -302,13 +314,15 @@ async function loadScores() {
       ...credentials(activeSession), method: 'POST', body: { p_entry_id: entry.id }
     });
     const scores = await response.json();
-    if (activeSession !== session || selected !== entry || sequence !== scoreRequest) return;
-    renderTable('scores', scores.map((score) =>
-      [score.judge, ...scoreKeys.map((key) => score[key]), score.total ?? '미채점']));
+    if (activeSession !== session || scoreEntry !== entry || sequence !== scoreRequest) return;
+    renderTable('scores', scores.map((score) => {
+      const judge = score.appropriateness_weight === 1.5 ? `${score.judge} (적절성 1.5배)` : score.judge;
+      return [judge, ...scoreKeys.map((key) => score[key]), score.total ?? '미채점'];
+    }));
     const completed = scores.filter((score) => score.total !== null).length;
     status('scores-status', scores.length ? `채점 완료 ${completed} / ${scores.length}명` : '등록된 심사위원이 없습니다.');
   } catch (error) {
-    if (selected === entry && sequence === scoreRequest) {
+    if (scoreEntry === entry && sequence === scoreRequest) {
       await reportError(error, activeSession, 'scores-status', '심사위원별 점수를 불러오지 못했습니다.');
     }
   }
@@ -329,20 +343,48 @@ function tieDetails(result) {
   return details;
 }
 
+function rankingTeam(entry) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'ranking-team';
+  const label = document.createElement('span');
+  label.textContent = `${entry.team_name} · ${entry.title}`;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'button review-secondary compact';
+  button.textContent = '점수 보기';
+  button.setAttribute('aria-label', `${entry.title} 심사위원별 점수 보기`);
+  button.setAttribute('aria-controls', 'scores-panel');
+  button.addEventListener('click', () => {
+    rankingEntry = entry;
+    showScores(entry);
+    get('scores-title').focus();
+  });
+  wrapper.append(label, button);
+  return wrapper;
+}
+
 async function loadRankings() {
   if (!session) return;
   const activeSession = session;
   const sequence = ++rankRequest;
   clearTable('rankings');
+  get('ranking-weight-note').hidden = true;
   status('rankings-status', '순위를 불러오는 중입니다…');
   try {
     const response = await request('/rest/v1/rpc/contest_manager_rankings', credentials(activeSession));
     const rankings = await response.json();
     if (activeSession !== session || sequence !== rankRequest) return;
+    const weighted = rankings.some((row) => row.weighted);
+    get('ranking-weight-note').hidden = !weighted;
+    get('ranking-average-label').textContent = weighted ? '가중 평균 / 100' : '평균 / 100';
     renderTable('rankings', rankings.map((row) => [
-      row.rank, `${row.team_name} · ${row.title}`, `${row.scored} / ${row.expected}`,
+      row.rank, rankingTeam(row), `${row.scored} / ${row.expected}`,
       row.average, row.total, tieDetails(row)
     ]));
+    if (!get('rankings-panel').hidden && rankingEntry) {
+      rankingEntry = rankings.find(({ id }) => id === rankingEntry.id);
+      showScores(rankingEntry);
+    }
     status('rankings-status', rankings.length ? '' : '등록된 작품이 없습니다.');
   } catch (error) {
     if (sequence === rankRequest) await reportError(error, activeSession, 'rankings-status', '순위를 불러오지 못했습니다.');

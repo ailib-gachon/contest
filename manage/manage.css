@@ -96,6 +96,20 @@
   min-width: 130px;
 }
 
+.ranking-team {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 145px;
+}
+
+.ranking-team .button {
+  min-height: 32px;
+  padding-block: 3px;
+  white-space: nowrap;
+}
+
 .manage-table details summary {
   display: list-item;
   padding: 0;

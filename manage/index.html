@@ -85,9 +85,10 @@
               <p id="save-status" class="review-status" role="status"></p>
             </form>
           </div>
+          <div id="entries-score-slot">
           <section id="scores-panel" class="scores-panel" aria-labelledby="scores-title" hidden>
             <div class="manage-toolbar">
-              <h3 id="scores-title">심사위원별 점수</h3>
+              <h3 id="scores-title" tabindex="-1">심사위원별 점수</h3>
               <button id="reload-scores" class="button review-secondary compact" type="button">점수 새로고침</button>
             </div>
             <p id="scores-status" class="review-status" role="status"></p>
@@ -98,6 +99,7 @@
               </table>
             </div>
           </section>
+          </div>
         </section>
         <section id="rankings-panel" class="review-card" aria-labelledby="rankings-title" hidden>
           <div class="manage-toolbar">
@@ -105,13 +107,15 @@
             <button id="reload-rankings" class="button review-secondary compact" type="button">순위 새로고침</button>
           </div>
           <p>등록된 심사위원 전원이 모든 작품을 채점하면 순위가 표시됩니다.</p>
+          <p id="ranking-weight-note" class="review-status" hidden>AI 활용의 적절성은 지정 심사위원 두 명의 점수를 각 1.5배 반영합니다. 나머지 항목은 동일 비중입니다.</p>
           <p id="rankings-status" class="review-status" role="status"></p>
           <div class="manage-table">
             <table id="rankings-table" hidden>
-              <thead><tr><th scope="col">순위</th><th scope="col">팀·작품</th><th scope="col">채점 완료</th><th scope="col">평균 / 100</th><th scope="col">총점 합계</th><th scope="col">동점 처리</th></tr></thead>
+              <thead><tr><th scope="col">순위</th><th scope="col">팀·작품</th><th scope="col">채점 완료</th><th id="ranking-average-label" scope="col">평균 / 100</th><th scope="col">원점수 합계</th><th scope="col">동점 처리</th></tr></thead>
               <tbody id="rankings-body"></tbody>
             </table>
           </div>
+          <div id="rankings-score-slot"></div>
         </section>
       </div>
     </div>
