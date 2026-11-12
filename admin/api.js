@@ -41,5 +41,26 @@ window.contestApi = (() => {
     return '로그인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.';
   }
 
-  return Object.freeze({ configured, request, revokeSession, loginError });
+  function driveVideoLinks(value) {
+    if (!value) return;
+    try {
+      const source = new URL(value);
+      if (source.origin !== 'https://drive.google.com' || source.username || source.password) return;
+      const id = source.pathname === '/open' ? source.searchParams.get('id') :
+        source.pathname.match(/^\/file\/d\/([A-Za-z0-9_-]+)(?:\/(?:view|preview|edit))?\/?$/)?.[1];
+      if (!id || !/^[A-Za-z0-9_-]+$/.test(id)) return;
+      const view = new URL(`/file/d/${id}/view`, source.origin);
+      const preview = new URL(`/file/d/${id}/preview`, source.origin);
+      const resourceKey = source.searchParams.get('resourcekey');
+      if (resourceKey && /^[A-Za-z0-9_-]+$/.test(resourceKey)) {
+        view.searchParams.set('resourcekey', resourceKey);
+        preview.searchParams.set('resourcekey', resourceKey);
+      }
+      return { view: view.href, preview: preview.href };
+    } catch {
+      return undefined;
+    }
+  }
+
+  return Object.freeze({ configured, request, revokeSession, loginError, driveVideoLinks });
 })();

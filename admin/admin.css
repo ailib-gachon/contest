@@ -276,6 +276,40 @@
   font-weight: 750;
 }
 
+.video-dialog {
+  width: min(850px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: clamp(14px, 3vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+
+.video-dialog::backdrop {
+  background: #102448bb;
+}
+
+.video-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.video-heading h2 {
+  font-size: 1.35rem;
+}
+
+.video-dialog iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: var(--navy);
+  margin-bottom: 12px;
+}
+
 @media (max-width: 560px) {
   .review-shell {
     width: calc(100% - 32px);

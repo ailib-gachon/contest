@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://*.supabase.co; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://*.supabase.co; frame-src https://drive.google.com; base-uri 'none'; form-action 'none'">
   <title>심사위원 페이지 | 가천대학교 생성형 AI 활용 사례 공모전</title>
   <link rel="stylesheet" href="../styles.css">
   <link rel="stylesheet" href="./admin.css">
@@ -72,6 +72,7 @@
             <div class="file-actions">
               <a id="drive-link" class="button review-secondary compact" target="_blank" rel="noopener noreferrer">제출 파일 열기 ↗</a>
               <a id="report-link" class="button review-secondary compact" target="_blank" rel="noopener noreferrer" hidden>보고서 PDF ↗</a>
+              <button id="play-video" class="button review-secondary compact" type="button" hidden>시연 영상 재생</button>
             </div>
           </div>
           <form id="score-form" method="post">
@@ -93,5 +94,13 @@
       </section>
     </div>
   </main>
+  <dialog id="video-dialog" class="video-dialog" aria-labelledby="video-title">
+    <div class="video-heading">
+      <h2 id="video-title">시연 영상</h2>
+      <button id="close-video" class="button review-secondary compact" type="button" autofocus>닫기</button>
+    </div>
+    <div id="video-frame-slot"></div>
+    <a id="open-video-drive" class="button review-secondary compact" target="_blank" rel="noopener noreferrer">Drive에서 영상 열기 ↗</a>
+  </dialog>
 </body>
 </html>

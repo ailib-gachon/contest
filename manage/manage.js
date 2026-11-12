@@ -1,15 +1,16 @@
 'use strict';
 
-const { configured, request, revokeSession, loginError } = window.contestApi;
+const { configured, request, revokeSession, loginError, driveVideoLinks } = window.contestApi;
 const get = (id) => document.getElementById(id);
 const loginFields = get('login-fields');
 const entryFields = get('entry-fields');
 const entrySelect = get('entry-select');
 const entryForm = get('entry-form');
 const fieldIds = {
-  team_name: 'team-name', title: 'entry-title', drive_url: 'drive-url', report_url: 'report-url'
+  team_name: 'team-name', title: 'entry-title', drive_url: 'drive-url', report_url: 'report-url',
+  video_url: 'video-url'
 };
-const entryFieldsQuery = 'id,team_name,title,drive_url,report_url,revision';
+const entryFieldsQuery = 'id,team_name,title,drive_url,report_url,video_url,revision';
 const scoreKeys = ['creativity', 'appropriateness', 'effectiveness', 'reproducibility'];
 const collator = new Intl.Collator('ko');
 
@@ -247,6 +248,11 @@ entryForm.addEventListener('submit', async (event) => {
     status('save-status', 'https://drive.google.com 또는 https://docs.google.com 공유 링크를 입력해 주세요.', true);
     return;
   }
+  const video = driveVideoLinks(data.video_url);
+  if (data.video_url && !video) {
+    status('save-status', '시연 영상은 Google Drive의 개별 파일 공유 링크를 입력해 주세요.', true);
+    return;
+  }
   const activeSession = session;
   const updating = selected;
   const query = new URLSearchParams({ select: entryFieldsQuery });
@@ -259,7 +265,8 @@ entryForm.addEventListener('submit', async (event) => {
   try {
     const response = await request(`/rest/v1/contest_entries?${query}`, {
       ...credentials(activeSession), method: updating ? 'PATCH' : 'POST',
-      prefer: 'return=representation', body: { ...data, report_url: data.report_url || null }
+      prefer: 'return=representation',
+      body: { ...data, report_url: data.report_url || null, video_url: video?.view ?? null }
     });
     const [entry] = await response.json();
     if (activeSession !== session) return;
