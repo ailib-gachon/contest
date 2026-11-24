@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://*.supabase.co; frame-src https://drive.google.com; media-src blob:; base-uri 'none'; form-action 'none'">
+  <title>도서관 공모전 | 가천대학교 중앙도서관</title>
+  <link rel="stylesheet" href="hub.css">
+  <link rel="stylesheet" href="../admin/video-player.css?v=original-playback">
+  <script src="../admin/config.js" defer></script>
+  <script src="../admin/api.js" defer></script>
+  <script src="../admin/video-player.js?v=original-playback" defer></script>
+  <script src="catalog.js" defer></script>
+  <script src="hub.js?v=contest-review" defer></script>
+  <script src="settings.js?v=contest-review" defer></script>
+  <script src="review.js?v=original-playback" defer></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <a href="#" aria-label="공모전 목록"><img src="../assets/library-logo.png" alt="가천대학교 중앙도서관" width="255" height="57"></a>
+      <nav aria-label="주 메뉴"><a href="#list">공모전 목록</a><a href="#review">심사·운영</a></nav>
+    </div>
+  </header>
+  <main id="main">
+    <section id="home">
+      <div class="hero">
+        <div class="wrap hero-inner">
+          <div><p class="kicker">GACHON UNIVERSITY LIBRARY</p><h1>도서관<br>공모전</h1></div>
+          <p class="hero-description">공모전별 참가 대상과 제출 방법을 확인하세요. 접수와 결과 발표는 각 공모전의 공식 안내를 따릅니다.</p>
+        </div>
+      </div>
+      <section class="wrap shelf" id="list" aria-labelledby="list-title">
+        <div class="bar"><h2 id="list-title">공모전 목록</h2>
+          <div id="filters" class="filters" aria-label="공모전 상태 필터">
+            <button type="button" aria-pressed="true" data-filter="all">전체</button>
+            <button type="button" aria-pressed="false" data-filter="open">접수 중</button>
+            <button type="button" aria-pressed="false" data-filter="planned">예정</button>
+            <button type="button" aria-pressed="false" data-filter="closed">접수 종료</button>
+          </div>
+        </div>
+        <div class="cards" id="cards"></div>
+        <p id="list-status" class="status" role="status"></p>
+      </section>
+    </section>
+    <article id="detail" class="wrap secondary-page" hidden></article>
+    <section id="review" class="wrap secondary-page" hidden aria-labelledby="review-title">
+      <a href="#list" class="back" id="review-back">← 공모전 목록</a>
+      <h1 id="review-title">심사·운영</h1>
+      <p class="lede" id="review-overview" hidden><a href="#review">모든 공모전 심사·운영</a></p>
+      <section class="panel" id="login-panel">
+        <h2>공통 심사 화면 로그인</h2>
+        <form id="login-form" method="post">
+          <label>이메일 <input id="email" type="email" autocomplete="username" required></label>
+          <label>비밀번호 <input id="password" type="password" autocomplete="current-password" required></label>
+          <button class="button" id="login-button" type="submit" disabled>로그인</button>
+        </form>
+        <p id="auth-status" class="status" role="status"></p>
+      </section>
+      <div id="workspace" hidden>
+        <div class="bar">
+          <label>담당 공모전 <select id="contest-picker"></select></label>
+          <div class="actions">
+            <button type="button" class="button secondary" id="settings-toggle" aria-expanded="false" hidden>공모전 설정</button>
+            <button type="button" class="button secondary" id="logout">로그아웃</button>
+          </div>
+        </div>
+        <section class="panel setup-panel" id="settings-panel" aria-labelledby="settings-title" hidden>
+          <h2 id="settings-title">공모전 설정</h2>
+          <label>설정할 공모전 <select id="settings-picker"></select></label>
+          <p class="status" id="settings-status" role="status"></p>
+          <div id="settings-content"></div>
+        </section>
+        <p class="status" id="workspace-status" role="status"></p>
+        <div id="workspace-content"></div>
+        <p class="status" id="action-status" role="status"></p>
+      </div>
+      <div class="legacy" id="legacy-review">
+        <strong>2026 생성형 AI 활용 사례 공모전</strong>
+        <div class="actions"><a class="button secondary" href="../admin/index.html">심사위원 페이지</a><a class="button secondary" href="../manage/index.html">관리자 페이지</a></div>
+      </div>
+    </section>
+    <dialog id="player" class="contest-video-player" aria-labelledby="player-title">
+      <div class="video-heading">
+        <h2 id="player-title" data-video-title>시연 영상</h2>
+        <button data-video-close class="button secondary" type="button" autofocus>닫기</button>
+      </div>
+      <div class="video-actions">
+        <button data-video-preview class="button secondary" type="button" aria-pressed="true">Drive 재생</button>
+        <button data-video-choose class="button" type="button">다운로드한 원본 재생</button>
+        <a id="player-link" data-video-drive class="button secondary" target="_blank" rel="noopener noreferrer">Drive에서 원본 받기 ↗</a>
+      </div>
+      <p class="video-help">Drive에서 다운로드(↓)한 원본 파일을 선택하면 저장된 해상도로 재생합니다.</p>
+      <input data-video-file type="file" accept="video/*,.mkv,.avi,.mts,.m2ts" aria-label="다운로드한 원본 영상 선택" hidden>
+      <p data-video-status class="video-playback-status" role="status"></p>
+      <div id="frame-slot" data-video-slot></div>
+    </dialog>
+  </main>
+  <footer class="wrap footer"><span>가천대학교 중앙도서관</span><a href="https://lib.gachon.ac.kr/">도서관 홈페이지 ↗</a></footer>
+</body>
+</html>

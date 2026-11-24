@@ -59,8 +59,7 @@ const reload = byId('reload');
 const signOut = byId('sign-out');
 const saveButton = byId('save-score');
 const { configured, request, revokeSession, loginError, driveVideoLinks, entryVideoUrls } = window.contestApi;
-const videoDialog = byId('video-dialog');
-const videoSlot = byId('video-frame-slot');
+const videoPlayer = window.createContestVideoPlayer(byId('video-dialog'));
 const setupMessage = '심사위원 로그인이 아직 설정되지 않았습니다. 공모전 담당자에게 문의해 주세요.';
 
 let loginRequest;
@@ -224,7 +223,7 @@ function setDriveLink(element, value) {
 
 function showEntry(entry) {
   currentEntry = entry;
-  closeVideo();
+  videoPlayer.close();
   entryPanel.hidden = !entry;
   byId('entry-title').textContent = entry?.title ?? '';
   byId('entry-team').textContent = entry?.team_name ?? '';
@@ -239,35 +238,15 @@ function showEntry(entry) {
     button.type = 'button';
     button.className = 'button review-secondary compact';
     button.textContent = `${title} 재생`;
-    button.addEventListener('click', () => playVideo(video, title));
+    button.addEventListener('click', () => {
+      if (session) videoPlayer.open(video, title);
+    });
     return button;
   }));
   for (const { key } of rubrics) byId(key).value = entry?.score?.[key] ?? '';
   updateTotal();
   status(scoreStatus, entry?.score ? '저장한 점수를 불러왔습니다.' : '');
 }
-
-function closeVideo() {
-  if (videoDialog.open) videoDialog.close();
-  videoSlot.replaceChildren();
-  byId('open-video-drive').removeAttribute('href');
-}
-
-function playVideo(video, title) {
-  if (!session || videoDialog.open) return;
-  const frame = document.createElement('iframe');
-  byId('video-title').textContent = title;
-  frame.title = `Google Drive ${title} 재생`;
-  frame.src = video.preview;
-  frame.allowFullscreen = true;
-  byId('open-video-drive').href = video.view;
-  videoSlot.replaceChildren(frame);
-  videoDialog.showModal();
-}
-byId('close-video').addEventListener('click', closeVideo);
-videoDialog.addEventListener('close', () => {
-  if (!videoDialog.open) closeVideo();
-});
 
 function updateTotal() {
   const scores = rubrics.map(({ key, max }) => {

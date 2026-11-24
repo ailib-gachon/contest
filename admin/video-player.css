@@ -1,0 +1,59 @@
+dialog.contest-video-player {
+  width: min(1120px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  padding: clamp(14px, 2vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+}
+
+.contest-video-player::backdrop {
+  background: #102448bb;
+}
+
+.video-heading, .video-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.video-heading h2 {
+  font-size: 1.35rem;
+}
+
+.video-actions {
+  justify-content: flex-start;
+}
+
+.video-actions .button[aria-pressed="true"] {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+
+.video-help, .video-playback-status {
+  font-size: .9rem;
+  color: var(--muted);
+  margin-block: 8px;
+}
+
+.video-playback-status[data-error="true"] {
+  color: #a12434;
+}
+
+.video-playback-status:empty {
+  display: none;
+}
+
+.contest-video-player iframe, .contest-video-player video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 65vh;
+  border: 0;
+  background: #102448;
+  margin: 12px 0 0;
+}

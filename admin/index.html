@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://*.supabase.co; frame-src https://drive.google.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://*.supabase.co; frame-src https://drive.google.com; media-src blob:; base-uri 'none'; form-action 'none'">
   <title>심사위원 페이지 | 가천대학교 생성형 AI 활용 사례 공모전</title>
   <link rel="stylesheet" href="../styles.css">
   <link rel="stylesheet" href="./admin.css">
+  <link rel="stylesheet" href="./video-player.css?v=original-playback">
   <script src="./config.js" defer></script>
   <script src="./api.js" defer></script>
-  <script src="./admin.js" defer></script>
+  <script src="./video-player.js?v=original-playback" defer></script>
+  <script src="./admin.js?v=original-playback" defer></script>
 </head>
 <body class="review">
   <a class="skip-link" href="#main">본문 바로가기</a>
@@ -94,13 +96,20 @@
       </section>
     </div>
   </main>
-  <dialog id="video-dialog" class="video-dialog" aria-labelledby="video-title">
+  <dialog id="video-dialog" class="contest-video-player" aria-labelledby="video-title">
     <div class="video-heading">
-      <h2 id="video-title">시연 영상</h2>
-      <button id="close-video" class="button review-secondary compact" type="button" autofocus>닫기</button>
+      <h2 id="video-title" data-video-title>시연 영상</h2>
+      <button id="close-video" data-video-close class="button review-secondary compact" type="button" autofocus>닫기</button>
     </div>
-    <div id="video-frame-slot"></div>
-    <a id="open-video-drive" class="button review-secondary compact" target="_blank" rel="noopener noreferrer">Drive에서 영상 열기 ↗</a>
+    <div class="video-actions">
+      <button data-video-preview class="button review-secondary compact" type="button" aria-pressed="true">Drive 재생</button>
+      <button data-video-choose class="button blue-button compact" type="button">다운로드한 원본 재생</button>
+      <a id="open-video-drive" data-video-drive class="button review-secondary compact" target="_blank" rel="noopener noreferrer">Drive에서 원본 받기 ↗</a>
+    </div>
+    <p class="video-help">Drive에서 다운로드(↓)한 원본 파일을 선택하면 저장된 해상도로 재생합니다.</p>
+    <input data-video-file type="file" accept="video/*,.mkv,.avi,.mts,.m2ts" aria-label="다운로드한 원본 영상 선택" hidden>
+    <p data-video-status class="video-playback-status" role="status"></p>
+    <div id="video-frame-slot" data-video-slot></div>
   </dialog>
 </body>
 </html>
