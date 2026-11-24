@@ -130,3 +130,14 @@
     gap: 10px;
   }
 }
+.judge-mark {
+  display: grid;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.judge-mark small {
+  font-size: .875rem;
+  color: var(--muted);
+}
+

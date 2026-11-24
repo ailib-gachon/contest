@@ -340,8 +340,18 @@ async function loadScores() {
     if (activeSession !== session || scoreEntry !== entry || sequence !== scoreRequest) return;
     renderTable('scores', scores.map((score) => {
       const profile = window.contestJudgeScoring.profile(score.judge_type);
-      const judge = `${score.judge} (${profile.label}${score.converted ? ' · 기존 점수 환산' : ''})`;
-      return [judge, ...scoreKeys.map((key) => score[key] == null ? '—' : `${score[key]} / ${profile.maxima[key]}`), score.total ?? '미채점',
+      const judge = `${score.judge} (${profile.label}${score.converted ? ' · 이전 배점에서 환산' : ''})`;
+      return [judge, ...scoreKeys.map((key) => {
+        if (score[key] == null) return '—';
+        const cell = document.createElement('div');
+        cell.className = 'judge-mark';
+        const raw = document.createElement('span');
+        raw.textContent = `원점수 ${score[key]} / ${profile.maxima[key]}`;
+        const weighted = document.createElement('small');
+        weighted.textContent = `반영 ${score.weighted_marks[key]} / ${profile.weightedMaxima[key]} (×${profile.weights[key]})`;
+        cell.append(raw, weighted);
+        return cell;
+      }), score.total ?? '미채점', score.weighted_total ?? '미채점',
         window.contestScoreComments.text(score.review_comment)];
     }));
     const completed = scores.filter((score) => score.total !== null).length;
@@ -400,7 +410,7 @@ async function loadRankings() {
     const rankings = await response.json();
     if (activeSession !== session || sequence !== rankRequest) return;
     get('ranking-weight-note').hidden = rankings.length === 0;
-    get('ranking-average-label').textContent = '평균 / 100';
+    get('ranking-average-label').textContent = '가중 총점 평균 / 100';
     renderTable('rankings', rankings.map((row) => [
       row.rank, rankingTeam(row), `${row.scored} / ${row.expected}`,
       row.average, row.total, tieDetails(row)

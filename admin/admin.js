@@ -189,7 +189,7 @@ function addRubric({ key, label, max, description, bands }) {
   input.inputMode = 'decimal';
   input.min = '0';
   input.max = String(max);
-  input.step = '0.1';
+  input.step = '0.0001';
   input.required = true;
   input.setAttribute('aria-describedby', `${key}-description`);
   row.append(title, input);
@@ -257,7 +257,7 @@ function showEntry(entry) {
   for (const { key } of rubrics) byId(key).value = entry?.score?.[key] ?? '';
   scoreComment.setValue(entry?.score?.review_comment ?? '');
   updateTotal();
-  status(scoreStatus, entry?.score?.converted ? '기존 점수의 득점 비율을 유지해 새 배점으로 환산했습니다.' :
+  status(scoreStatus, entry?.score?.converted ? '이전 유형별 배점으로 저장한 평가를 공통 배점으로 환산해 불러왔습니다.' :
     entry?.score ? '저장한 점수와 심사평을 불러왔습니다.' : '');
 }
 
@@ -267,7 +267,7 @@ function updateTotal() {
     return byId(key).checkValidity() && Number.isFinite(score) && score >= 0 && score <= max ? score : NaN;
   });
   byId('score-total').value = scores.every(Number.isFinite) ?
-    Math.round(scores.reduce((total, score) => total + score, 0) * 10) / 10 : '—';
+    Math.round(scores.reduce((total, score) => total + score, 0) * 10000) / 10000 : '—';
 }
 
 function hasUnsavedScore() {
@@ -322,15 +322,15 @@ async function loadEntries() {
       if (session === activeSession) clearSession('심사 권한이 종료되었습니다.', true);
       return;
     }
-    const response = await request('/rest/v1/rpc/contest_judge_workspace', { token, signal, method: 'POST', body: {} });
+    const response = await request('/rest/v1/rpc/contest_judge_weighted_workspace', { token, signal, method: 'POST', body: {} });
     const payload = await response.json();
     if (session !== activeSession) return;
-    const profile = window.contestJudgeScoring.profile(payload.judge_type);
+    window.contestJudgeScoring.profile(payload.judge_type);
     judgeType = payload.judge_type;
-    rubrics = window.contestJudgeScoring.rubrics(baseRubrics, payload.judge_type);
+    rubrics = window.contestJudgeScoring.rubrics(baseRubrics);
     byId('rubrics').replaceChildren();
     rubrics.forEach(addRubric);
-    byId('judge-profile').textContent = `${profile.label} · ${rubrics.map(({ label, max }) => `${label} ${max}점`).join(' / ')} · 소수점 첫째 자리까지 입력할 수 있습니다.`;
+    byId('judge-profile').textContent = `공통 입력 배점 · ${rubrics.map(({ label, max }) => `${label} ${max}점`).join(' / ')} · 입력한 원점수는 그대로 저장됩니다.`;
     entries = payload.entries;
     const scored = entries.filter((entry) => entry.score).length;
     showEntry(entries.find((entry) => entry.id === selection) ?? entries[0]);
@@ -367,7 +367,7 @@ scoreForm.addEventListener('submit', async (event) => {
   saveButton.textContent = '저장 중…';
   status(scoreStatus);
   try {
-    const response = await request('/rest/v1/rpc/contest_save_typed_review', {
+    const response = await request('/rest/v1/rpc/contest_save_weighted_review', {
       token: activeSession.token, signal: activeSession.controller.signal, method: 'POST', body
     });
     const total = await response.json();
