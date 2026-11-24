@@ -340,7 +340,8 @@ async function loadScores() {
     if (activeSession !== session || scoreEntry !== entry || sequence !== scoreRequest) return;
     renderTable('scores', scores.map((score) => {
       const judge = score.appropriateness_weight === 1.5 ? `${score.judge} (적절성 1.5배)` : score.judge;
-      return [judge, ...scoreKeys.map((key) => score[key]), score.total ?? '미채점'];
+      return [judge, ...scoreKeys.map((key) => score[key]), score.total ?? '미채점',
+        window.contestScoreComments.text(score.review_comment)];
     }));
     const completed = scores.filter((score) => score.total !== null).length;
     status('scores-status', scores.length ? `채점 완료 ${completed} / ${scores.length}명` : '등록된 심사위원이 없습니다.');

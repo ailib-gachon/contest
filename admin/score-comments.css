@@ -1,0 +1,51 @@
+.score-comment-field {
+  margin-block: 24px;
+  min-width: 0;
+}
+
+.score-comment-field label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.score-comment-field textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #9caec2;
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.6;
+}
+
+.score-comment-help, .score-comment-count {
+  margin-block: 6px;
+  color: var(--muted);
+  font-size: .875rem;
+}
+
+.score-comment-count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-comment-count[data-error="true"] {
+  color: #a12434;
+}
+
+.score-comment-text {
+  min-width: 200px;
+  max-width: 440px;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: .9375rem;
+  line-height: 1.6;
+}

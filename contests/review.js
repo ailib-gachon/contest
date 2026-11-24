@@ -286,7 +286,9 @@
       if (active === session) status('action-status', message);
     } catch (error) {
       if (active !== session) return;
-      const message = error.status === 409 || error.code === '23505' ?
+      const message = name === 'save_review' && error.status === 404 ?
+        '심사평 저장 설정이 아직 적용되지 않았습니다. 공모전 담당자에게 문의해 주세요.' :
+        error.status === 409 || error.code === '23505' ?
         '다른 변경 사항이 있거나 작품 번호가 이미 사용 중입니다. 목록을 갱신해 주세요.' :
         '저장하지 못했습니다. 로그인과 입력값을 확인해 주세요.';
       status('action-status', message, true);
@@ -332,7 +334,8 @@
   }
 
   function judgeForm(event, item) {
-    const score = data.scores.find(({ entry_id }) => entry_id === item.id)?.marks;
+    const review = data.scores.find(({ entry_id }) => entry_id === item.id);
+    const score = review?.marks;
     const actions = node('div', null, 'actions');
     for (const anchor of [driveLink(item.drive_url, '심사 자료 열기 ↗'), driveLink(item.report_url, '보고서 열기 ↗')]) {
       if (anchor) actions.append(anchor);
@@ -364,9 +367,14 @@
     }));
     const maximum = criteria.reduce((sum, item) => sum + item.max, 0);
     const marksTotal = node('p');
-    const scoreForm = form('점수 저장', (marks) =>
-      save('save_score', { p_entry: item.id, p_marks: Object.fromEntries(Object.entries(marks).map(([key, value]) => [key, Number(value)])) },
-        item.id, '점수를 저장했습니다.'), criterionGrid, marksTotal);
+    const comment = window.contestScoreComments.field(review?.review_comment ?? '');
+    const scoreForm = form('점수·심사평 저장', (marks) => {
+      if (!comment.input.reportValidity()) return;
+      save('save_review', {
+        p_entry: item.id, p_marks: Object.fromEntries(criteria.map(({ key }) => [key, Number(marks[key])])),
+        p_review_comment: comment.value()
+      }, item.id, '점수와 심사평을 저장했습니다.');
+    }, criterionGrid, marksTotal, comment.element);
     function updateTotal() {
       const fields = [...criterionGrid.querySelectorAll('input')];
       const total = fields.every((field) => field.checkValidity()) ?
@@ -385,13 +393,14 @@
 
   function judgeDetails(event, item) {
     const scores = new Map(data.scores.filter(({ entry_id }) => entry_id === item.id)
-      .map(({ judge_id, marks }) => [judge_id, marks]));
+      .map((score) => [score.judge_id, score]));
     return gridPanel('심사위원별 점수',
-      table(['심사위원', ...event.criteria.map(({ label }) => label), '총점'], data.judges.map(({ id, name }) => {
-        const marks = scores.get(id);
-        if (!marks) return [name, ...event.criteria.map(() => '—'), '미채점'];
+      table(['심사위원', ...event.criteria.map(({ label }) => label), '총점', '심사평'], data.judges.map(({ id, name }) => {
+        const review = scores.get(id);
+        const marks = review?.marks;
+        if (!marks) return [name, ...event.criteria.map(() => '—'), '미채점', window.contestScoreComments.text()];
         const values = totalsFor(event, item, marks);
-        return [name, ...values, values.reduce((a, b) => a + b, 0)];
+        return [name, ...values, values.reduce((a, b) => a + b, 0), window.contestScoreComments.text(review.review_comment)];
       })));
   }
 

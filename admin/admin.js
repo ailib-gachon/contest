@@ -61,6 +61,8 @@ const saveButton = byId('save-score');
 const { configured, request, revokeSession, loginError, driveVideoLinks, entryVideoUrls } = window.contestApi;
 const videoPlayer = window.createContestVideoPlayer(byId('video-dialog'));
 const judgeNotice = window.createJudgeNoticePanel(byId('judge-notice'));
+const scoreComment = window.contestScoreComments.field();
+byId('score-comment-slot').append(scoreComment.element);
 const setupMessage = '심사위원 로그인이 아직 설정되지 않았습니다. 공모전 담당자에게 문의해 주세요.';
 
 let loginRequest;
@@ -97,7 +99,7 @@ function clearSession(message = '', focus = false) {
   reload.disabled = false;
   signOut.disabled = false;
   scoreFields.disabled = false;
-  saveButton.textContent = '점수 저장';
+  saveButton.textContent = '점수·심사평 저장';
   showEntry(undefined);
   status(filesStatus);
   byId('signed-in-as').textContent = '';
@@ -249,8 +251,9 @@ function showEntry(entry) {
     return button;
   }));
   for (const { key } of rubrics) byId(key).value = entry?.score?.[key] ?? '';
+  scoreComment.setValue(entry?.score?.review_comment ?? '');
   updateTotal();
-  status(scoreStatus, entry?.score ? '저장한 점수를 불러왔습니다.' : '');
+  status(scoreStatus, entry?.score ? '저장한 점수와 심사평을 불러왔습니다.' : '');
 }
 
 function updateTotal() {
@@ -263,12 +266,13 @@ function updateTotal() {
 }
 
 function hasUnsavedScore() {
-  return Boolean(currentEntry && rubrics.some(({ key }) =>
-    byId(key).value !== String(currentEntry.score?.[key] ?? '')));
+  return Boolean(currentEntry && (rubrics.some(({ key }) =>
+    byId(key).value !== String(currentEntry.score?.[key] ?? '')) ||
+    scoreComment.input.value !== (currentEntry.score?.review_comment ?? '')));
 }
 
 function confirmDiscard() {
-  return !hasUnsavedScore() || window.confirm('저장하지 않은 점수를 버리시겠습니까?');
+  return !hasUnsavedScore() || window.confirm('저장하지 않은 점수와 심사평을 버리시겠습니까?');
 }
 
 function fillPicker() {
@@ -317,7 +321,7 @@ async function loadEntries() {
     }
     let page;
     do {
-      const fields = 'id,team_name,title,drive_url,report_url,video_url,extra_video_urls,contest_scores(creativity,appropriateness,effectiveness,reproducibility,total)';
+      const fields = 'id,team_name,title,drive_url,report_url,video_url,extra_video_urls,contest_scores(creativity,appropriateness,effectiveness,reproducibility,total,review_comment)';
       const params = new URLSearchParams({
         select: fields, order: 'team_name.asc,title.asc,id.asc', limit, offset: results.length
       });
@@ -351,7 +355,8 @@ scoreForm.addEventListener('submit', async (event) => {
   const activeSession = session;
   const entry = currentEntry;
   const scores = Object.fromEntries(rubrics.map(({ key }) => [key, byId(key).valueAsNumber]));
-  const body = { p_entry_id: entry.id };
+  const reviewComment = scoreComment.value();
+  const body = { p_entry_id: entry.id, p_review_comment: reviewComment };
   for (const [key, value] of Object.entries(scores)) body[`p_${key}`] = value;
 
   saving = true;
@@ -362,19 +367,21 @@ scoreForm.addEventListener('submit', async (event) => {
   saveButton.textContent = '저장 중…';
   status(scoreStatus);
   try {
-    const response = await request('/rest/v1/rpc/save_contest_score', {
+    const response = await request('/rest/v1/rpc/save_contest_review', {
       token: activeSession.token, signal: activeSession.controller.signal, method: 'POST', body
     });
     const total = await response.json();
     if (session !== activeSession) return;
-    entry.score = { ...scores, total };
+    entry.score = { ...scores, total, review_comment: reviewComment };
+    scoreComment.setValue(reviewComment);
     byId('score-total').value = total;
     fillPicker();
     status(filesStatus, `채점 완료 ${entries.filter((item) => item.score).length} / ${entries.length}팀`);
-    status(scoreStatus, `${entry.team_name} 점수를 저장했습니다.`);
+    status(scoreStatus, `${entry.team_name} 점수와 심사평을 저장했습니다.`);
   } catch (error) {
     await handleReviewError(error, activeSession, scoreStatus,
-      '점수를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      error.status === 404 ? '심사평 저장 설정이 아직 적용되지 않았습니다. 공모전 담당자에게 문의해 주세요.' :
+        '점수와 심사평을 저장하지 못했습니다. 입력 내용은 유지됩니다. 잠시 후 다시 시도해 주세요.');
   } finally {
     if (session === activeSession) {
       saving = false;
@@ -382,7 +389,7 @@ scoreForm.addEventListener('submit', async (event) => {
       picker.disabled = false;
       reload.disabled = false;
       signOut.disabled = false;
-      saveButton.textContent = '점수 저장';
+      saveButton.textContent = '점수·심사평 저장';
     }
   }
 });
@@ -396,7 +403,7 @@ picker.addEventListener('change', () => {
 });
 scoreForm.addEventListener('input', () => {
   updateTotal();
-  status(scoreStatus, '변경한 점수가 있습니다.');
+  status(scoreStatus, '변경한 점수 또는 심사평이 있습니다.');
 });
 reload.addEventListener('click', () => {
   if (confirmDiscard()) loadEntries();

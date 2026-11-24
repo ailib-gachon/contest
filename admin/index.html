@@ -11,11 +11,13 @@
   <link rel="stylesheet" href="./admin.css">
   <link rel="stylesheet" href="./video-player.css?v=original-playback">
   <link rel="stylesheet" href="./judge-notices.css?v=judge-notices">
+  <link rel="stylesheet" href="./score-comments.css?v=score-comments">
   <script src="./config.js" defer></script>
   <script src="./api.js" defer></script>
   <script src="./video-player.js?v=original-playback" defer></script>
   <script src="./judge-notices.js?v=judge-notices" defer></script>
-  <script src="./admin.js?v=judge-notices" defer></script>
+  <script src="./score-comments.js?v=score-comments" defer></script>
+  <script src="./admin.js?v=score-comments" defer></script>
 </head>
 <body class="review">
   <a class="skip-link" href="#main">본문 바로가기</a>
@@ -85,12 +87,13 @@
               <legend>항목별 점수</legend>
               <p class="score-note">사용한 AI 도구의 성능이나 제출물의 디자인 완성도 자체는 평가하지 않습니다.</p>
               <div id="rubrics"></div>
+              <div id="score-comment-slot"></div>
               <div class="score-footer">
                 <div class="score-total">
                   <label for="score-total">총점</label>
                   <output id="score-total">—</output><span> / 100점</span>
                 </div>
-                <button id="save-score" class="button blue-button" type="submit">점수 저장</button>
+                <button id="save-score" class="button blue-button" type="submit">점수·심사평 저장</button>
               </div>
             </fieldset>
             <p id="score-status" class="review-status" role="status"></p>
