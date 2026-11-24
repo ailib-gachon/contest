@@ -60,6 +60,7 @@ const signOut = byId('sign-out');
 const saveButton = byId('save-score');
 const { configured, request, revokeSession, loginError, driveVideoLinks, entryVideoUrls } = window.contestApi;
 const videoPlayer = window.createContestVideoPlayer(byId('video-dialog'));
+const judgeNotice = window.createJudgeNoticePanel(byId('judge-notice'));
 const setupMessage = '심사위원 로그인이 아직 설정되지 않았습니다. 공모전 담당자에게 문의해 주세요.';
 
 let loginRequest;
@@ -87,6 +88,7 @@ function clearSession(message = '', focus = false) {
     session.controller.abort();
   }
   session = undefined;
+  judgeNotice.clear();
   entries = [];
   loading = false;
   saving = false;
@@ -224,6 +226,9 @@ function setDriveLink(element, value) {
 function showEntry(entry) {
   currentEntry = entry;
   videoPlayer.close();
+  if (entry && session) {
+    judgeNotice.load('ai-cases-2026', entry.id, { token: session.token, signal: session.controller.signal });
+  } else judgeNotice.clear();
   entryPanel.hidden = !entry;
   byId('entry-title').textContent = entry?.title ?? '';
   byId('entry-team').textContent = entry?.team_name ?? '';

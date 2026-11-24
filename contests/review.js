@@ -7,6 +7,8 @@
   const content = get('workspace-content');
   const settings = window.libraryContestSettings;
   const videoPlayer = window.createContestVideoPlayer(get('player'));
+  const noticePanel = get('contest-notice');
+  const judgeNotice = window.createJudgeNoticePanel(noticePanel);
   const criteriaFor = (event) => event.criteria.filter(({ mode }) => mode !== 'loans');
   let session;
   let loginAttempt;
@@ -35,6 +37,7 @@
     session?.controller.abort();
     clearTimeout(session?.timer);
     session = undefined;
+    judgeNotice.clear();
     data = undefined;
     pending = false;
     reviewQueued = false;
@@ -127,6 +130,7 @@
       reviewQueued = true;
       if (data?.event.slug !== requested) {
         content.hidden = true;
+        noticePanel.hidden = true;
         status('workspace-status', '선택한 공모전으로 이동하는 중입니다…');
         status('action-status');
       }
@@ -138,6 +142,7 @@
     }
     if (!assignments.some(({ slug }) => slug === requested)) {
       data = undefined;
+      judgeNotice.clear();
       activeId = '';
       changes = false;
       content.hidden = true;
@@ -149,6 +154,7 @@
     contestPicker.value = requested;
     if (!reload && data?.event.slug === requested) {
       content.hidden = false;
+      noticePanel.hidden = !noticePanel.childElementCount;
       status('workspace-status', `${data.event.name} · ${data.entries.length}개 작품`);
       return;
     }
@@ -182,14 +188,18 @@
   }
 
   function discard() {
-    return !changes || window.confirm('저장하지 않은 변경사항을 버리시겠습니까?');
+    return judgeNotice.canLeave() && (!changes || window.confirm('저장하지 않은 변경사항을 버리시겠습니까?'));
   }
 
   async function loadContest(slug, nextId = '') {
     if (pending || !session) return;
     const active = session;
     setBusy(true);
-    if (data?.event.slug !== slug) content.hidden = true;
+    if (data?.event.slug !== slug) {
+      content.hidden = true;
+      judgeNotice.clear();
+    }
+    noticePanel.hidden = true;
     status('action-status');
     status('workspace-status', '공모전 자료를 불러오는 중입니다…');
     try {
@@ -198,8 +208,8 @@
       data = payload;
       activeId = payload.entries.some(({ id }) => id === nextId) ? nextId : '';
       if (payload.role === 'judge') activeId ||= payload.entries[0]?.id ?? '';
-      renderWorkspace();
       const scope = reviewScope();
+      renderWorkspace();
       content.hidden = Boolean(scope && scope !== data.event.slug);
     } catch (error) {
       if (active !== session) return;
@@ -435,6 +445,10 @@
     const { event, role, entries } = data;
     status('workspace-status', `${event.name} · ${entries.length}개 작품`);
     const item = entries.find(({ id }) => id === activeId);
+    if (item) {
+      judgeNotice.load(event.slug, item.id,
+        { token: session.token, signal: session.controller.signal }, role === 'operator');
+    } else judgeNotice.clear();
     if (!item && role === 'judge') {
       content.replaceChildren(gridPanel('심사할 작품', node('p', '등록된 작품이 없습니다.')));
       return;
@@ -460,6 +474,10 @@
     refresh.addEventListener('click', () => { if (discard()) loadContest(event.slug, activeId); });
     const grid = node('div', null, 'work-grid');
     const fields = role === 'operator' ? operatorForm(event, item) : judgeForm(event, item);
+    if (item) {
+      if (role === 'operator') fields.push(noticePanel);
+      else fields.unshift(noticePanel);
+    }
     grid.append(gridPanel('작품', title, refresh),
       gridPanel(role === 'operator' ? (item ? '작품 수정' : '새 작품 등록') : `작품 ${item.code} 채점`, ...fields));
     content.replaceChildren(grid);

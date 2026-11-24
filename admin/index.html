@@ -10,10 +10,12 @@
   <link rel="stylesheet" href="../styles.css">
   <link rel="stylesheet" href="./admin.css">
   <link rel="stylesheet" href="./video-player.css?v=original-playback">
+  <link rel="stylesheet" href="./judge-notices.css?v=judge-notices">
   <script src="./config.js" defer></script>
   <script src="./api.js" defer></script>
   <script src="./video-player.js?v=original-playback" defer></script>
-  <script src="./admin.js?v=original-playback" defer></script>
+  <script src="./judge-notices.js?v=judge-notices" defer></script>
+  <script src="./admin.js?v=judge-notices" defer></script>
 </head>
 <body class="review">
   <a class="skip-link" href="#main">본문 바로가기</a>
@@ -77,6 +79,7 @@
               <div id="video-buttons" class="file-actions" hidden></div>
             </div>
           </div>
+          <section id="judge-notice" class="judge-notice" aria-label="작품 참고 안내" hidden></section>
           <form id="score-form" method="post">
             <fieldset id="score-fields">
               <legend>항목별 점수</legend>

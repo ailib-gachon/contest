@@ -13,6 +13,7 @@ const videoInput = get('video-urls');
 const entryFieldsQuery = 'id,team_name,title,drive_url,report_url,video_url,extra_video_urls,revision';
 const scoreKeys = ['creativity', 'appropriateness', 'effectiveness', 'reproducibility'];
 const collator = new Intl.Collator('ko');
+const judgeNotice = window.createJudgeNoticePanel(get('notice-editor'));
 
 let loginAttempt;
 let session;
@@ -37,6 +38,7 @@ function clearSession(message = '', focus = false) {
     session.controller.abort();
   }
   session = undefined;
+  judgeNotice.clear();
   entries = [];
   rankingEntry = undefined;
   get('dashboard').hidden = true;
@@ -166,6 +168,8 @@ function renderSelect(id = '') {
 
 function showEntry(entry) {
   selected = entry;
+  if (entry && session) judgeNotice.load('ai-cases-2026', entry.id, credentials(session), true);
+  else judgeNotice.clear();
   for (const [key, id] of Object.entries(fieldIds)) get(id).value = entry?.[key] ?? '';
   videoInput.value = entryVideoUrls(entry).join('\n');
   get('entry-legend').textContent = entry ? '작품 수정' : '새 작품 등록';
@@ -193,7 +197,7 @@ function hasChanges() {
 }
 
 function allowDiscard() {
-  return !hasChanges() || window.confirm('저장하지 않은 변경사항을 버리시겠습니까?');
+  return judgeNotice.canLeave() && (!hasChanges() || window.confirm('저장하지 않은 변경사항을 버리시겠습니까?'));
 }
 
 async function loadEntries() {

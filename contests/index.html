@@ -9,13 +9,15 @@
   <title>도서관 공모전 | 가천대학교 중앙도서관</title>
   <link rel="stylesheet" href="hub.css">
   <link rel="stylesheet" href="../admin/video-player.css?v=original-playback">
+  <link rel="stylesheet" href="../admin/judge-notices.css?v=judge-notices">
   <script src="../admin/config.js" defer></script>
   <script src="../admin/api.js" defer></script>
   <script src="../admin/video-player.js?v=original-playback" defer></script>
+  <script src="../admin/judge-notices.js?v=judge-notices" defer></script>
   <script src="catalog.js" defer></script>
   <script src="hub.js?v=contest-review" defer></script>
   <script src="settings.js?v=contest-review" defer></script>
-  <script src="review.js?v=original-playback" defer></script>
+  <script src="review.js?v=judge-notices" defer></script>
 </head>
 <body>
   <header class="top">
@@ -74,6 +76,7 @@
           <div id="settings-content"></div>
         </section>
         <p class="status" id="workspace-status" role="status"></p>
+        <section id="contest-notice" class="judge-notice" aria-label="작품 참고 안내" hidden></section>
         <div id="workspace-content"></div>
         <p class="status" id="action-status" role="status"></p>
       </div>

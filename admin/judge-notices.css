@@ -1,0 +1,94 @@
+.judge-notice {
+  margin-top: 18px;
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border: 1px solid #a4bedb;
+  border-left: 4px solid #164b82;
+  border-radius: 8px;
+  background: #f2f7fd;
+  color: var(--ink);
+}
+
+.judge-notice h3 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.judge-notice-label {
+  color: #164b82;
+  font-size: .82rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.judge-notice-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.judge-notice-link {
+  display: inline-block;
+  color: #164b82;
+  font-weight: 700;
+  margin-top: 10px;
+  text-decoration: underline;
+}
+
+.judge-notice-help, .judge-notice-status {
+  color: var(--muted);
+  margin-block: 8px;
+  font-size: .9rem;
+}
+
+.judge-notice-status:empty {
+  display: none;
+}
+
+.judge-notice-status[data-error="true"] {
+  color: #a12434;
+}
+
+.judge-notice-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.judge-notice-form label {
+  display: block;
+  font-size: .9rem;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.judge-notice-form input:not([type="checkbox"]), .judge-notice-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  margin-top: 5px;
+  border: 1px solid #9caec2;
+  border-radius: 6px;
+  font: inherit;
+  color: var(--ink);
+  background: white;
+}
+
+.judge-notice-form .judge-notice-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block: 14px;
+}
+
+.judge-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.judge-notice-actions .button {
+  color: white;
+  background: #164b82;
+}

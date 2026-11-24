@@ -10,9 +10,11 @@
   <link rel="stylesheet" href="../styles.css">
   <link rel="stylesheet" href="../admin/admin.css">
   <link rel="stylesheet" href="./manage.css">
+  <link rel="stylesheet" href="../admin/judge-notices.css?v=judge-notices">
   <script src="../admin/config.js" defer></script>
   <script src="../admin/api.js" defer></script>
-  <script src="./manage.js" defer></script>
+  <script src="../admin/judge-notices.js?v=judge-notices" defer></script>
+  <script src="./manage.js?v=judge-notices" defer></script>
 </head>
 <body class="review">
   <a class="skip-link" href="#main">본문 바로가기</a>
@@ -88,6 +90,7 @@
               <p id="save-status" class="review-status" role="status"></p>
             </form>
           </div>
+          <section id="notice-editor" class="judge-notice" aria-label="작품 참고 안내 관리" hidden></section>
           <div id="entries-score-slot">
           <section id="scores-panel" class="scores-panel" aria-labelledby="scores-title" hidden>
             <div class="manage-toolbar">
