@@ -333,14 +333,15 @@ async function loadScores() {
   clearTable('scores');
   status('scores-status', '점수를 불러오는 중입니다…');
   try {
-    const response = await request('/rest/v1/rpc/contest_manager_scores', {
+    const response = await request('/rest/v1/rpc/contest_manager_typed_scores', {
       ...credentials(activeSession), method: 'POST', body: { p_entry_id: entry.id }
     });
     const scores = await response.json();
     if (activeSession !== session || scoreEntry !== entry || sequence !== scoreRequest) return;
     renderTable('scores', scores.map((score) => {
-      const judge = score.appropriateness_weight === 1.5 ? `${score.judge} (적절성 1.5배)` : score.judge;
-      return [judge, ...scoreKeys.map((key) => score[key]), score.total ?? '미채점',
+      const profile = window.contestJudgeScoring.profile(score.judge_type);
+      const judge = `${score.judge} (${profile.label}${score.converted ? ' · 기존 점수 환산' : ''})`;
+      return [judge, ...scoreKeys.map((key) => score[key] == null ? '—' : `${score[key]} / ${profile.maxima[key]}`), score.total ?? '미채점',
         window.contestScoreComments.text(score.review_comment)];
     }));
     const completed = scores.filter((score) => score.total !== null).length;
@@ -395,12 +396,11 @@ async function loadRankings() {
   get('ranking-weight-note').hidden = true;
   status('rankings-status', '순위를 불러오는 중입니다…');
   try {
-    const response = await request('/rest/v1/rpc/contest_manager_rankings', credentials(activeSession));
+    const response = await request('/rest/v1/rpc/contest_manager_typed_rankings', credentials(activeSession));
     const rankings = await response.json();
     if (activeSession !== session || sequence !== rankRequest) return;
-    const weighted = rankings.some((row) => row.weighted);
-    get('ranking-weight-note').hidden = !weighted;
-    get('ranking-average-label').textContent = weighted ? '가중 평균 / 100' : '평균 / 100';
+    get('ranking-weight-note').hidden = rankings.length === 0;
+    get('ranking-average-label').textContent = '평균 / 100';
     renderTable('rankings', rankings.map((row) => [
       row.rank, rankingTeam(row), `${row.scored} / ${row.expected}`,
       row.average, row.total, tieDetails(row)

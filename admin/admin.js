@@ -1,6 +1,6 @@
 'use strict';
 
-const rubrics = [
+const baseRubrics = [
   {
     key: 'creativity', label: '창의성·독창성', max: 25,
     description: '문제 정의와 AI 활용 접근의 참신성·독창성',
@@ -42,6 +42,7 @@ const rubrics = [
     ]
   }
 ];
+let rubrics = [];
 
 const byId = (id) => document.getElementById(id);
 const loginForm = byId('login-form');
@@ -69,6 +70,7 @@ let loginRequest;
 let session;
 let entries = [];
 let currentEntry;
+let judgeType;
 let loading = false;
 let saving = false;
 
@@ -90,6 +92,7 @@ function clearSession(message = '', focus = false) {
     session.controller.abort();
   }
   session = undefined;
+  judgeType = undefined;
   judgeNotice.clear();
   entries = [];
   loading = false;
@@ -103,6 +106,7 @@ function clearSession(message = '', focus = false) {
   showEntry(undefined);
   status(filesStatus);
   byId('signed-in-as').textContent = '';
+  byId('judge-profile').textContent = '';
   byId('submissions').hidden = true;
   byId('login-panel').hidden = false;
   passwordInput.value = '';
@@ -182,10 +186,10 @@ function addRubric({ key, label, max, description, bands }) {
   const input = document.createElement('input');
   input.id = key;
   input.type = 'number';
-  input.inputMode = 'numeric';
+  input.inputMode = 'decimal';
   input.min = '0';
   input.max = String(max);
-  input.step = '1';
+  input.step = '0.1';
   input.required = true;
   input.setAttribute('aria-describedby', `${key}-description`);
   row.append(title, input);
@@ -253,16 +257,17 @@ function showEntry(entry) {
   for (const { key } of rubrics) byId(key).value = entry?.score?.[key] ?? '';
   scoreComment.setValue(entry?.score?.review_comment ?? '');
   updateTotal();
-  status(scoreStatus, entry?.score ? '저장한 점수와 심사평을 불러왔습니다.' : '');
+  status(scoreStatus, entry?.score?.converted ? '기존 점수의 득점 비율을 유지해 새 배점으로 환산했습니다.' :
+    entry?.score ? '저장한 점수와 심사평을 불러왔습니다.' : '');
 }
 
 function updateTotal() {
   const scores = rubrics.map(({ key, max }) => {
     const score = byId(key).valueAsNumber;
-    return Number.isInteger(score) && score >= 0 && score <= max ? score : NaN;
+    return byId(key).checkValidity() && Number.isFinite(score) && score >= 0 && score <= max ? score : NaN;
   });
   byId('score-total').value = scores.every(Number.isFinite) ?
-    scores.reduce((total, score) => total + score, 0) : '—';
+    Math.round(scores.reduce((total, score) => total + score, 0) * 10) / 10 : '—';
 }
 
 function hasUnsavedScore() {
@@ -312,33 +317,29 @@ async function loadEntries() {
   scoreFields.disabled = true;
   status(filesStatus, '제출작을 불러오는 중입니다…');
   const selection = currentEntry?.id;
-  const results = [];
-  const limit = 100;
   try {
     if (!await isJudge(token, signal)) {
       if (session === activeSession) clearSession('심사 권한이 종료되었습니다.', true);
       return;
     }
-    let page;
-    do {
-      const fields = 'id,team_name,title,drive_url,report_url,video_url,extra_video_urls,contest_scores(creativity,appropriateness,effectiveness,reproducibility,total,review_comment)';
-      const params = new URLSearchParams({
-        select: fields, order: 'team_name.asc,title.asc,id.asc', limit, offset: results.length
-      });
-      const response = await request(`/rest/v1/contest_entries?${params}`, { token, signal });
-      page = await response.json();
-      results.push(...page);
-    } while (page.length === limit);
+    const response = await request('/rest/v1/rpc/contest_judge_workspace', { token, signal, method: 'POST', body: {} });
+    const payload = await response.json();
     if (session !== activeSession) return;
-
-    entries = results.map(({ contest_scores, ...entry }) => ({ ...entry, score: contest_scores[0] }));
+    const profile = window.contestJudgeScoring.profile(payload.judge_type);
+    judgeType = payload.judge_type;
+    rubrics = window.contestJudgeScoring.rubrics(baseRubrics, payload.judge_type);
+    byId('rubrics').replaceChildren();
+    rubrics.forEach(addRubric);
+    byId('judge-profile').textContent = `${profile.label} · ${rubrics.map(({ label, max }) => `${label} ${max}점`).join(' / ')} · 소수점 첫째 자리까지 입력할 수 있습니다.`;
+    entries = payload.entries;
     const scored = entries.filter((entry) => entry.score).length;
     showEntry(entries.find((entry) => entry.id === selection) ?? entries[0]);
     fillPicker();
     status(filesStatus, entries.length ? `채점 완료 ${scored} / ${entries.length}팀` : '등록된 제출작이 없습니다.');
   } catch (error) {
     await handleReviewError(error, activeSession, filesStatus,
-      '제출작을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      error.status === 404 ? '심사위원 유형별 배점 설정이 아직 적용되지 않았습니다. 공모전 담당자에게 문의해 주세요.' :
+        '제출작을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
   } finally {
     if (session === activeSession) {
       loading = false;
@@ -356,8 +357,7 @@ scoreForm.addEventListener('submit', async (event) => {
   const entry = currentEntry;
   const scores = Object.fromEntries(rubrics.map(({ key }) => [key, byId(key).valueAsNumber]));
   const reviewComment = scoreComment.value();
-  const body = { p_entry_id: entry.id, p_review_comment: reviewComment };
-  for (const [key, value] of Object.entries(scores)) body[`p_${key}`] = value;
+  const body = { p_entry_id: entry.id, p_marks: scores, p_review_comment: reviewComment, p_judge_type: judgeType };
 
   saving = true;
   scoreFields.disabled = true;
@@ -367,12 +367,12 @@ scoreForm.addEventListener('submit', async (event) => {
   saveButton.textContent = '저장 중…';
   status(scoreStatus);
   try {
-    const response = await request('/rest/v1/rpc/save_contest_review', {
+    const response = await request('/rest/v1/rpc/contest_save_typed_review', {
       token: activeSession.token, signal: activeSession.controller.signal, method: 'POST', body
     });
     const total = await response.json();
     if (session !== activeSession) return;
-    entry.score = { ...scores, total, review_comment: reviewComment };
+    entry.score = { ...scores, total, review_comment: reviewComment, converted: false };
     scoreComment.setValue(reviewComment);
     byId('score-total').value = total;
     fillPicker();
@@ -380,7 +380,8 @@ scoreForm.addEventListener('submit', async (event) => {
     status(scoreStatus, `${entry.team_name} 점수와 심사평을 저장했습니다.`);
   } catch (error) {
     await handleReviewError(error, activeSession, scoreStatus,
-      error.status === 404 ? '심사평 저장 설정이 아직 적용되지 않았습니다. 공모전 담당자에게 문의해 주세요.' :
+      error.status === 409 ? '심사위원 유형이 변경되었습니다. 입력 내용을 확인하고 새로고침해 주세요.' :
+        error.status === 404 ? '심사평 저장 설정이 아직 적용되지 않았습니다. 공모전 담당자에게 문의해 주세요.' :
         '점수와 심사평을 저장하지 못했습니다. 입력 내용은 유지됩니다. 잠시 후 다시 시도해 주세요.');
   } finally {
     if (session === activeSession) {
@@ -422,5 +423,4 @@ window.addEventListener('beforeunload', (event) => {
 });
 window.addEventListener('pagehide', () => clearSession());
 
-rubrics.forEach(addRubric);
 clearSession();
